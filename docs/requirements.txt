@@ -150,7 +150,7 @@ sphinx-rtd-theme==3.1.0
     # via
     #   -r requirements.in
     #   sphinx-rtd-dark-mode
-sphinx-scrapy @ git+https://github.com/scrapy/sphinx-scrapy.git@46c52fc3a6d5ee632a8ef6bccf4daa1ff53e96fd
+sphinx-scrapy @ git+https://github.com/scrapy/sphinx-scrapy.git@1b0170e8592c82b4fc79edaf7b05dc081e037cef
     # via -r requirements.in
 sphinxcontrib-applehelp==2.0.0
     # via sphinx
