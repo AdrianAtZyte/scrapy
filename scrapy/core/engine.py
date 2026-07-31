@@ -384,7 +384,7 @@ class ExecutionEngine:
 
         Concurrency-blocked states do not need this: a freed slot already
         re-runs the loop from :meth:`_download`'s ``finally``. Only time-based
-        limits (delay, backoff, quota windows) need a timer, since nothing else
+        limits (delay, backoff) need a timer, since nothing else
         would re-run the loop while they hold requests back.
         """
         assert self._slot is not None
