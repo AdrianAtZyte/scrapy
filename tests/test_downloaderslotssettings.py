@@ -269,8 +269,7 @@ async def test_download_handler_gate_ignores_unthrottled_requests():
     downloader.close()
 
 
-@coroutine_test
-async def test_download_handler_gate_without_an_engine():
+def test_download_handler_gate_without_an_engine():
     crawler = get_crawler(
         DefaultSpider, {"THROTTLING_SCOPES": {"a.example": {"concurrency": 1}}}
     )
@@ -280,12 +279,11 @@ async def test_download_handler_gate_without_an_engine():
     # With no engine there is no downloader, and hence no download handler to
     # hold the request off.
     request = Request("https://a.example/1")
-    await throttler.acquire(request)
+    throttler.reserve(request)
     assert throttler.download_handler_blocked(request) is False
 
 
-@coroutine_test
-async def test_download_handler_gate_logs_when_debugging(caplog):
+def test_download_handler_gate_logs_when_debugging(caplog):
     crawler = get_crawler(
         DefaultSpider,
         {
@@ -305,9 +303,8 @@ async def test_download_handler_gate_logs_when_debugging(caplog):
     # the borrower is on the network.
     lender = Request("https://a.example/1")
     borrower = Request("https://a.example/robots.txt")
-    await throttler.acquire(lender)
-    downloader.active.add(lender)
-    await throttler.acquire(borrower, unscheduled=True)
+    throttler.reserve(lender)
+    throttler.reserve(borrower)
     downloader._in_download_handler.add(borrower)
 
     with caplog.at_level(logging.DEBUG, logger="scrapy.throttler"):
@@ -406,8 +403,25 @@ async def test_unlimited_concurrent_requests():
     assert crawler.stats.get_value("response_received_count") == 1
 
 
+@pytest.mark.parametrize(
+    "scheduler_settings",
+    [
+        pytest.param({}, id="default_scheduler"),
+        # A throttler-aware scheduler holds a request back through
+        # Throttler.is_ready() instead of inside Throttler.acquire(), which is a
+        # separate path that must let the robots.txt request through just the
+        # same.
+        pytest.param(
+            {
+                "SCHEDULER": "scrapy.core.scheduler.ThrottlerAwareScheduler",
+                "SCHEDULER_PRIORITY_QUEUE": "scrapy.pqueues.ThrottlerAwarePriorityQueue",
+            },
+            id="throttler_aware_scheduler",
+        ),
+    ],
+)
 @coroutine_test
-async def test_download_handler_slots_do_not_deadlock_on_robotstxt():
+async def test_download_handler_slots_do_not_deadlock_on_robotstxt(scheduler_settings):
     """With room for a single request in a download handler, a request sitting in
     the downloader middlewares while they download its robots.txt holds no
     download handler slot, so the robots.txt request can be handled and the crawl
@@ -418,6 +432,7 @@ async def test_download_handler_slots_do_not_deadlock_on_robotstxt():
             settings_dict={
                 "CONCURRENT_REQUESTS": 1,
                 "ROBOTSTXT_OBEY": True,
+                **scheduler_settings,
             },
         )
         crawl = deferred_from_coro(
