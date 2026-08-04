@@ -31,6 +31,7 @@ extensions = [
     "sphinx_scrapy",
     "scrapyfixautodoc",  # Must be after "sphinx.ext.autodoc"
     "sphinx.ext.coverage",
+    "sphinx_reredirects",
     "sphinx_rtd_dark_mode",
 ]
 
@@ -151,6 +152,11 @@ autodoc_type_aliases = {
 # https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html#configuration
 
 intersphinx_disabled_reftypes: Sequence[str] = []
+
+# -- sphinx-reredirects -------------------------------------------------------
+redirects = {
+    "topics/autothrottle": "throttling.html",
+}
 
 # sphinx-scrapy ---------------------------------------------------------------
 
