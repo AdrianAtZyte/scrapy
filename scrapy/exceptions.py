@@ -190,10 +190,8 @@ class UsageError(Exception):
         super().__init__(*a, **kw)
 
 
-class ScrapyDeprecationWarning(Warning):
-    """Warning category for deprecated features, since the default
-    :exc:`DeprecationWarning` is silenced.
-    """
+class ScrapyDeprecationWarning(FutureWarning):
+    """Warning category for deprecated Scrapy features."""
 
 
 class ContractFail(AssertionError):
